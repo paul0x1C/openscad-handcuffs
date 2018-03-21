@@ -1,0 +1,153 @@
+/**********2D export*******************/
+layer = 1; //chose layer 1-3
+//layer 1 and 3 should be equal
+//uncomment the following line to get a 2D version of the selected layer
+//projection(cut = true) translate([0,0,-layer*3+1.5]) all();
+/***************************************/
+all();
+h = 3;
+d = 3;
+module all(){
+    b = 80;
+    rand = 12;
+    $fn = 100;
+    d = 3;
+    klB = 50;
+    klL = 35;
+    klW = d+2;
+    sc = 1.2;
+    nZ = 8;
+    xZ = 3;
+    yZ = 7;
+    p2 = -b/2+rand*0.5;
+    tol = 1;
+    ueH = 1.5;
+    difference(){
+        union(){
+            scale([1,sc,1]){
+                difference(){
+                    cylinder(h=3*h, d=b);
+                    union(){
+                        translate([-b/2,0,0])        cube([b,b/2,h]);
+                         translate([-b/2,-b/2,h]) cube([b,b/2,h]);
+                        translate([-b/2,0,2*h])   cube([b,b/2,h]);
+                        cylinder(h=3*h, d=b-rand*2);
+                    }
+                }            
+            }
+            
+            translate([p2,0,0])cylinder(h=3*h,d=rand);
+            
+            translate([b/2-rand,-klB/2,0]){
+                difference(){
+                    cube([klL,klB,3*h]);
+                    union(){
+                        translate([-klW,klW,h]){
+                            cube([klL,klB-2*klW,h]);
+                        }
+                        translate([p2-(b/2-rand),klB/2,h]){
+                            cylinder(r = b-rand/2+xZ+tol,h=h);
+                        }
+                        translate([d*2+rand+xZ-ueH,klB-klW,h])cube([ueH+h+xZ,klW,h]);
+                    }
+                }
+            }
+                    
+    //        translate([b/2,-klB/2+klW,h]){
+    //                cube();
+    //        }
+            
+            translate([p2,0,h]){
+                zahnK(xZ,yZ,h,b-rand/2,nZ);
+                zahnF(xZ,yZ,h,b-rand/2,-p2,0,0,(b-rand*2)/2*sc,nZ);
+                translate([0.5,0.5,0])RzahnK(xZ,yZ,h,b-rand/2,1,2);
+                intersection(){
+                     union(){
+                            translate([-p2+b/2+xZ,-klB/2+klW+xZ/2,0])
+                                cube([d*2,klB-2*klW-xZ,h]);
+                        difference(){    
+                            cylinder(h=h, r=b-rand/2+xZ+d*2);
+                            cylinder(h=h, r=b-rand/2+xZ);
+                        }
+                    }
+                    translate([b-rand/2,-klB/2+klW+xZ/2,0])
+                        cube([klL-rand-klW-1,klB-2*klW-xZ,h]);
+                }
+            }
+            translate([d*2+b/2+xZ,0,h])
+                    cube([h,klB/2+2,h]);
+        }
+        union(){
+            translate([p2,0,0]){
+                loch(d);
+    //            translate([b-rand/2,-klB/2+klW/2-d/2,h])loch(d);
+            }
+            translate([b/2+d/1.9+xZ,-klB/2+klW/2,0]){
+                loch(d);
+                translate([0,klB-klW,0])loch(d);
+            }
+            translate([b/2+klL-rand-klW/2,-klB/2+klW/2,0]){
+                loch(d);
+                translate([0,klB-klW,0])loch(d);
+            }
+            translate([b-rand/2+xZ+p2+d-1,-klB/2+klW+xZ/2+4,0])loch(d);
+       }
+    }
+}
+module loch(d){
+    cylinder(h=h*3,d=d);
+}
+module zahn(x,y,z,r){
+ translate([sqrt(r*r-y*y),-y/2,0]){    
+    difference(){
+            cube([x,y,z]);
+            rotate([0, 0,270+atan(y/x)]){
+                cube([y,sqrt(x*x+y*y),z]);
+            }
+        }
+    }
+}
+module zahnK(x,y,z,r,n){
+    for(i=[0 : 1 : n]){
+        d = i * 2 * atan(y/2/sqrt(r*r-y*y));
+        rotate([0,0,d]){
+            zahn(x,y,z,r);
+        }
+    }
+}
+
+module zahnF(x1,y1,z1,r1,x2,y2,z2,r2,n){
+    difference(){    
+        for(i=[0 : 1 : n]){
+            d = i * 2 * atan(y1/2/sqrt(r1*r1-y1*y1));
+            rotate([0,0,d]){
+                translate([0,-y1/2,0])
+                    cube([r1,y1,z1]);
+            }
+        }
+        translate([x2,y2,z2]){
+            cylinder(r=r2,h=z1);
+        }
+    }
+}
+
+module Rzahn(x,y,z,r){
+ //cylinder(r=r,h=z);
+ translate([sqrt(r*r-y*y),-y/2,0]){    
+    difference(){
+            cube([x,y,z]);
+            rotate([0, 0,0+atan(y/x)]){
+                cube([sqrt(x*x+y*y),y,z]);
+            }
+        }
+    }
+}
+
+module RzahnK(x,y,z,r,n1,n2){
+    for(i=[n1 : 1 : n2]){
+        d = i * 2 * atan(y/2/sqrt(r*r-y*y));
+        rotate([0,0,d]){
+            Rzahn(x,y,z,r);
+        }
+    }
+}
